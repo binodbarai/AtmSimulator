@@ -30,6 +30,7 @@ public class AtmSimulator {
         //pin number verification
         if(cardIsValid) {
             int count = 0;
+            System.out.println("Card Verified.");
             do {
                 System.out.println("Enter your pin:");
                 try {
@@ -61,6 +62,7 @@ public class AtmSimulator {
         // when verification process is completed
         // showing options to the user
         if(pinIsValid && cardIsValid) {
+            System.out.println("PIN verified.");
             options();
         }
     }
@@ -164,7 +166,7 @@ public class AtmSimulator {
     private static boolean checkPinNumber(int providedpin) {
         
         if (providedpin == pin){
-            System.out.println("PIN verified.");
+
             return true;
         }
         else {
@@ -175,7 +177,6 @@ public class AtmSimulator {
 
     private static boolean checkCardNumber(double cardNumber) {
         if (cardNumber == 980555){
-            System.out.println("Card Verified.");
             return true;
         }else {
             System.out.println("Incorrect card number!!!");
