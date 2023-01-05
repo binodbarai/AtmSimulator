@@ -1,6 +1,4 @@
-import javax.swing.plaf.nimbus.State;
 import java.sql.*;
-import java.util.Comparator;
 import java.util.Scanner;
 
 public class AtmSimulator {
@@ -12,6 +10,7 @@ public class AtmSimulator {
 
     public static void main(String[] args) throws SQLException {
         Connection cn = DatabaseConnection.getConnection();
+        Statement stat = cn.createStatement();
 
         Scanner sc = new Scanner(System.in);
 
@@ -29,9 +28,9 @@ public class AtmSimulator {
             }catch (NumberFormatException ex){
                 System.out.println("Please Enter a valid card number");
             }
-        }while(!checkCardNumber(cn, cardNumber));
+        }while(!checkCardNumber(stat, cardNumber));
 
-        boolean cardIsValid = checkCardNumber(cn ,cardNumber);
+        boolean cardIsValid = checkCardNumber(stat ,cardNumber);
 
         //pin number verification
         if(cardIsValid) {
@@ -45,7 +44,7 @@ public class AtmSimulator {
                 } catch (NumberFormatException ex) {
                     System.out.println("Please Enter valid pin code.");
                 }
-                if (!checkPinNumber(cn,providedpin)) {
+                if (!checkPinNumber(stat,providedpin)) {
                     System.out.println("Incorrect pin number!!!");
                     int i = 0;
                     while (true) {
@@ -61,22 +60,22 @@ public class AtmSimulator {
 
                 }
 
-            } while (!checkPinNumber(cn,providedpin));
+            } while (!checkPinNumber(stat,providedpin));
 
 
         }
 
-        boolean pinIsValid = checkPinNumber(cn,providedpin);
+        boolean pinIsValid = checkPinNumber(stat,providedpin);
 
 
         // when verification process is completed
         // showing options to the user
         if(pinIsValid && cardIsValid) {
             System.out.println("PIN verified.");
-            options(cn);
+            options(cn,stat);
         }
     }
-    private static void options(Connection cn) throws SQLException {
+    private static void options(Connection cn,Statement stat) throws SQLException {
         Scanner sc = new Scanner(System.in);
         int choice = 0;
         do {
@@ -88,30 +87,30 @@ public class AtmSimulator {
             System.out.println("Enter 5 to END!");
 
             try {
-                choice = sc.nextInt();
+                choice = Integer.parseInt(sc.nextLine());
             } catch (NumberFormatException ex) {
                 System.out.println("Please Enter a valid choice!!!");
             }
 
             switch (choice){
                 case 1:
-                    balance(cn,cardNumber);
+                    balance(stat,cardNumber);
                     break;
                 case 2:
-                    miniStatement(cn,cardNumber);
+                    miniStatement(stat,cardNumber);
                     break;
                 case 3:
-                    withdrawal(cn, cardNumber);
+                    withdrawal(stat ,cn, cardNumber);
                     break;
                 case 4:
-                    changePIN(cn,cardNumber);
+                    changePIN(stat,cn,cardNumber);
                     break;
                 case 5:
                     exit();
                     break;
                 default:
                     System.out.println("Please enter a number between 1 to 5");
-                    options(cn);
+                    options(cn,stat);
             }
         } while (true);
 
@@ -122,24 +121,23 @@ public class AtmSimulator {
         System.exit(1);
     }
 
-    private static void changePIN(Connection cn, double cardNumber) throws SQLException {
+    private static void changePIN(Statement stat,Connection cn, double cardNumber) throws SQLException {
         int oldPIN;
         int newPIN;
         int renewPIN;
         Scanner sc = new Scanner(System.in);
-        Statement stat = cn.createStatement();
         String sql = "select * from user_info where pin =" +providedpin;
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
         pin = rs.getInt(3);
 
         System.out.println("Enter your old PIN:");
-        oldPIN = sc.nextInt();
+        oldPIN = Integer.parseInt(sc.nextLine());
         if (oldPIN == pin){
             System.out.println("Enter your new PIN");
-            newPIN = sc.nextInt();
+            newPIN = Integer.parseInt(sc.nextLine());
             System.out.println("Re-Enter your new PIN");
-            renewPIN = sc.nextInt();
+            renewPIN = Integer.parseInt(sc.nextLine());
 
             if (newPIN == renewPIN){
                 String updatePin = "update user_info set pin = ? where card_number = ?";
@@ -160,9 +158,8 @@ public class AtmSimulator {
 
     }
 
-    static void withdrawal(Connection cn, double cardNumber) throws SQLException{
+    static void withdrawal(Statement stat,Connection cn, double cardNumber) throws SQLException{
         Scanner sc = new Scanner(System.in);
-        Statement stat = cn.createStatement();
         String sql = "select balance from user_info where card_number = " +cardNumber;
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
@@ -190,8 +187,8 @@ public class AtmSimulator {
         }
     }
 
-    static void miniStatement(Connection cn,double cardNumber) throws SQLException {
-        Statement stat = cn.createStatement();
+    static void miniStatement(Statement stat,double cardNumber) throws SQLException {
+
         String sql = "select * from user_info where card_number =" +cardNumber;
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
@@ -202,8 +199,7 @@ public class AtmSimulator {
         System.out.println(rs.getString(5)+"\t\t" +rs.getString(4)+"\t\t\t" +rs.getInt(6));
     }
 
-    static void balance(Connection cn, double cardNumber) throws SQLException {
-        Statement stat = cn.createStatement();
+    static void balance(Statement stat, double cardNumber) throws SQLException {
         String sql = "select balance from user_info where card_number = " +cardNumber;
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
@@ -211,9 +207,7 @@ public class AtmSimulator {
 
     }
 
-    private static boolean checkPinNumber(Connection cn,int providedpin) throws SQLException {
-
-        Statement stat = cn.createStatement();
+    private static boolean checkPinNumber(Statement stat,int providedpin) throws SQLException {
         String sql = "select * from user_info where pin=" +providedpin;
         ResultSet rs = stat.executeQuery(sql);
         if (rs.next()){
@@ -223,8 +217,10 @@ public class AtmSimulator {
         }
     }
 
-    private static boolean checkCardNumber(Connection cn,double cardNumber) throws SQLException {
-        Statement stat = cn.createStatement();
+    private static boolean checkCardNumber(Statement stat,double cardNumber) throws SQLException {
+        if (cardNumber == 1111111){
+            AdminPanel.functions();
+        }
         String sql = "select * from user_info where card_number=" +cardNumber;
         ResultSet rs = stat.executeQuery(sql);
         if (rs.next()){
