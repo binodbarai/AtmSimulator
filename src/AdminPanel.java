@@ -20,8 +20,17 @@ public class AdminPanel {
         switch (choice){
             case 1:
                 addUser(stat,sc);
+            case 2:
+                deleteUser(stat,sc);
         }
 
+    }
+
+    private static void deleteUser(Statement stat, Scanner sc) {
+        System.out.println("Enter the user_id of the user you want to delete:");
+        int id  = Integer.parseInt(sc.nextLine());
+
+        String deleteQuery = "delete from user_info where user_id = "+id;
     }
 
     private static void addUser(Statement stat, Scanner sc) throws SQLException {
@@ -42,7 +51,13 @@ public class AdminPanel {
         String addQuery = "INSERT INTO `user_info` (`id`, `card_number`, `pin`, `bank_branch`, `name`, `balance`) VALUES (NULL, '"+cardNumber+"', '"+pinNumber+"', '"+bankBranch+"', '"+userName+"', '"+balance+"');";
         int rowsAffected = stat.executeUpdate(addQuery);
 
+        String userIDQuery = "select form user_info where card_number = "+cardNumber;
+        ResultSet rs = stat.executeQuery(userIDQuery);
+        rs.next();
+        int userID = rs.getInt(1);
+
         System.out.println("Data successfully updated.");
+        System.out.println("With user ID: " +userID);
         System.out.println("With card number: "+cardNumber);
         System.out.println("With pin number: "+pinNumber);
         System.out.println("Available balance:"+balance);
@@ -67,4 +82,5 @@ public class AdminPanel {
         }
 
     }
+
 }
