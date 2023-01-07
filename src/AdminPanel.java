@@ -8,9 +8,17 @@ import java.util.Scanner;
 public class AdminPanel {
     public static void functions() throws SQLException {
         Connection cn = DatabaseConnection.getConnection();
+
+
+        option(cn);
+
+
+
+    }
+    private  static void option(Connection cn) throws SQLException{
+
         Statement stat = cn.createStatement();
         Scanner sc = new Scanner(System.in);
-
         System.out.println("Options:");
         System.out.println("Enter 1 to add user");
         System.out.println("Enter 2 to delete user");
@@ -20,17 +28,32 @@ public class AdminPanel {
         switch (choice){
             case 1:
                 addUser(stat,sc);
+                break;
             case 2:
                 deleteUser(stat,sc);
+                break;
+            case 3:
+                System.exit(1);
+                break;
+            default:
+                System.out.println("Please select a number between 1 to 3:");
+                option(cn);
         }
-
     }
 
     private static void deleteUser(Statement stat, Scanner sc) {
         System.out.println("Enter the user_id of the user you want to delete:");
         int id  = Integer.parseInt(sc.nextLine());
 
-        String deleteQuery = "delete from user_info where user_id = "+id;
+        String deleteQuery = "delete from user_info where id = "+id;
+        try {
+            int rowCount = stat.executeUpdate(deleteQuery);
+            System.out.println(rowCount+ " row(s) deleted");
+            System.exit(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private static void addUser(Statement stat, Scanner sc) throws SQLException {
@@ -51,7 +74,7 @@ public class AdminPanel {
         String addQuery = "INSERT INTO `user_info` (`id`, `card_number`, `pin`, `bank_branch`, `name`, `balance`) VALUES (NULL, '"+cardNumber+"', '"+pinNumber+"', '"+bankBranch+"', '"+userName+"', '"+balance+"');";
         int rowsAffected = stat.executeUpdate(addQuery);
 
-        String userIDQuery = "select form user_info where card_number = "+cardNumber;
+        String userIDQuery = "select * from user_info where card_number = "+cardNumber;
         ResultSet rs = stat.executeQuery(userIDQuery);
         rs.next();
         int userID = rs.getInt(1);
@@ -61,14 +84,15 @@ public class AdminPanel {
         System.out.println("With card number: "+cardNumber);
         System.out.println("With pin number: "+pinNumber);
         System.out.println("Available balance:"+balance);
+        System.exit(1);
 
     }
-    private static double random(Statement stat) throws SQLException{
+    private static int random(Statement stat) throws SQLException{
         Random random = new Random();
 
-        double randomCardNumber = random.nextDouble(1000000);
+        int randomCardNumber = 1000000 + random.nextInt(9000000);
 
-        String sql = "select * form user_info where card_number= "+randomCardNumber;
+        String sql = "select * from user_info where card_number= "+randomCardNumber;
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
         
